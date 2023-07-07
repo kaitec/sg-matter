@@ -1,0 +1,39 @@
+dependencies:
+  espressif/button:
+    component_hash: 4d3ea5c1b7a4926c9d027e0bde0188207dadb0d1841d1cec2524f0cddd22f779
+    source:
+      service_url: https://api.components.espressif.com/
+      type: service
+    version: 2.5.0
+  espressif/esp_secure_cert_mgr:
+    component_hash: 0a7b7f1c26fbd6fd8f49cc90f39203e3ab9cf334bbbf288bede9db745c35892c
+    source:
+      service_url: https://api.components.espressif.com/
+      type: service
+    version: 2.3.1
+  espressif/json_parser:
+    component_hash: 2130029a8c005ba12476c5b5ae5c1c4589cb0c171f8100644d1ab883434eb91f
+    source:
+      service_url: https://api.components.espressif.com/
+      type: service
+    version: 1.0.0
+  espressif/led_strip:
+    component_hash: e8179c56057c243e80a8286c39361eb4bef33e42eb5f7fc841ea877597ca13f7
+    source:
+      service_url: https://api.components.espressif.com/
+      type: service
+    version: 1.0.0
+  espressif/mdns:
+    component_hash: 46ee81d32fbf850462d8af1e83303389602f6a6a9eddd2a55104cb4c063858ed
+    source:
+      service_url: https://api.components.espressif.com/
+      type: service
+    version: 1.1.0
+  idf:
+    component_hash: null
+    source:
+      type: idf
+    version: 5.0.1
+manifest_hash: 83d1e5164aa7ce3806840b0a8dad2d3019fd30995d045090bef902b6cf15a99b
+target: esp32
+version: 1.0.0
