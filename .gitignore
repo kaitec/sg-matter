@@ -1,0 +1,13 @@
+.cache
+compile_commands.json
+main/zap-generated
+main/idf_component.yml
+build/
+sdkconfig
+sdkconfig.old
+dependencies.lock
+managed_components/
+__pycache__/
+out/
+_build/
+.zap/

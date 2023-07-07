@@ -4,4 +4,4 @@ See the [docs](https://docs.espressif.com/projects/esp-matter/en/latest/esp32/de
 
 ## 1. Repository folder path
 
-~/esp-matter/examples/sg_matter
+~/esp-matter/examples/sg-matter
