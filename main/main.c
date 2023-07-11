@@ -7,10 +7,12 @@
 #include "matter.h"
 #include "hardware.h"
 #include "motor.h"
+#include "flash.h"
 
 void app_main(void)
 {
-    nvs_flash_init();
+    flash_init();//nvs_flash_init();
     hardware_init();
+    motor_init();
     matter_init();
 }

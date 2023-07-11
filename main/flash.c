@@ -7,16 +7,20 @@
 
 esp_err_t err;
 nvs_handle_t my_handle;
-uint16_t data_to_flash;
+//uint16_t data_to_flash;
 
 void flash_init(void)
 {
     err = nvs_flash_init();
-    if (err == ESP_ERR_NVS_NO_FREE_PAGES || err == ESP_ERR_NVS_NEW_VERSION_FOUND) 
-    {
-        ESP_ERROR_CHECK(nvs_flash_erase());
-        err = nvs_flash_init();
-    }
+    if (err != ESP_OK)
+	{ 
+		printf("Error (%s) NVS Flash Init!\n", esp_err_to_name(err));
+    } 
+    // if (err == ESP_ERR_NVS_NO_FREE_PAGES || err == ESP_ERR_NVS_NEW_VERSION_FOUND) 
+    // {
+    //     ESP_ERROR_CHECK(nvs_flash_erase());
+    //     err = nvs_flash_init();
+    // }
 }
 
 void flash_position_write(uint32_t value)

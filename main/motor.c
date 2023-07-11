@@ -32,19 +32,19 @@ bool motor_feedback = !FB_IN_MOTION;
 uint8_t feedback_position;
 uint8_t feedback_angle;
 
-void set_blind(uint8_t len, uint8_t val)
+void motor_set_blind(uint8_t len, uint8_t val)
 {
 		reciv.cmd=S_IO_CONTROL;
 		reciv.cmd_len=len;
-		reciv.cmd_val=val;
+		reciv.cmd_val= 100-val;
 }
 
-uint8_t get_roll(void)
+uint8_t motor_get_lift(void)
 {
-	return feedback_position;
+	return 100-feedback_position;
 }
 
-uint8_t get_angle(void)
+uint8_t motor_get_tilt(void)
 {
 	return feedback_angle;
 }
@@ -166,8 +166,8 @@ motor_movement_t motor_driver_state(motor_movement_t state) {
 		feedback_position = user_motor_var.perc_roll;
 		feedback_angle = user_motor_var.angle_t;
 
-		//rmaker_roll_update(feedback_position); /*************************** UPDATE POSITION ************************/
-		//rmaker_angle_update(feedback_angle);
+		/*************************** UPDATE POSITION ************************/
+		//matter_update_current_lift(motor_get_lift());
 	}
 	return direction;
 }
@@ -647,7 +647,7 @@ void motor_handler(void) {
 	}
 }
 
-void load_position(void)
+void motor_load_position(void)
 {
     user_motor_var.max_r_step = flash_haight_read();
 	//ESP_LOGI(__func__, "haight_read: %d", user_motor_var.max_r_step);
@@ -661,10 +661,12 @@ void load_position(void)
     //ESP_LOGI(__func__, "save height: %d", val1);
     //ESP_LOGI(__func__, "current height: %d", user_motor_var.current_step);
     //ESP_LOGI(__func__, "current angle: %d", user_motor_var.set_t_step);
+	feedback_position = user_motor_var.perc_roll;
+	feedback_angle = user_motor_var.angle_t;
   }
 }
 
-void reset_movement_variables(void)
+void motor_reset_variables(void)
 {
 	user_motor_var.max_t_step = MAX_DEF_T_STEPS;
 	blind_time.b_h.rest = 0;
@@ -676,8 +678,8 @@ void reset_movement_variables(void)
 
 void motor_init(void)
 {
-	reset_movement_variables();
-	load_position();
+	motor_reset_variables();
+	motor_load_position();
 	motor_start=true;
 }
 
@@ -685,9 +687,9 @@ void motor_reset(void)
 {
 	motor_start=false;
 	led_green_blink();
-	reset_movement_variables();
+	motor_reset_variables();
 	flash_haight_write(0);
     flash_position_write(0);
-	load_position();
+	motor_load_position();
 	motor_start=true;	
 }

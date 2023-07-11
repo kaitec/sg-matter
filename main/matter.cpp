@@ -77,9 +77,9 @@ esp_err_t app_driver_attribute_update(uint16_t endpoint_id, uint32_t cluster_id,
         { 
             if (attribute_id == WindowCovering::Attributes::TargetPositionLiftPercent100ths::Id) 
             {
-                uint8_t percent = 100-(val->val.u16 / 100);
+                uint8_t percent = val->val.u16/100;
                 ESP_LOGI(__func__,"Set blynd. Lift: %d", percent);
-                //set_blind(LIFT, percent);
+                motor_set_blind(LIFT, percent);
             }
             // if (attribute_id == WindowCovering::Attributes::TargetPositionTiltPercent100ths::Id) 
             // {
@@ -120,36 +120,47 @@ extern "C" void matter_update_current_lift(uint8_t value)
 {
     uint16_t endpoint_id = window_endpoint_id;
     uint32_t cluster_id = WindowCovering::Id;
-    uint32_t attribute_id = WindowCovering::Attributes::CurrentPositionLiftPercentage::Id;
+    //uint32_t attribute_id = WindowCovering::Attributes::CurrentPositionLiftPercentage::Id;
 
-    esp_matter_attr_val_t val = esp_matter_nullable_uint8(value);
-    attribute::update(endpoint_id, cluster_id, attribute_id, &val);
+    esp_matter_attr_val_t percent_u8  = esp_matter_nullable_uint8(value);
+    esp_matter_attr_val_t percent_u16 = esp_matter_nullable_uint16(value*100);
+    attribute::update(endpoint_id, cluster_id, WindowCovering::Attributes::CurrentPositionLiftPercentage::Id, &percent_u8);
+    attribute::update(endpoint_id, cluster_id, WindowCovering::Attributes::CurrentPositionLiftPercent100ths::Id, &percent_u16);
 }
 
 extern "C" void matter_init()
 {
+    nullable<uint8_t> lift_percentage = nullable<uint8_t>(motor_get_lift());
+    nullable<uint16_t> lift_percentage_100ths = nullable<uint16_t>(motor_get_lift()*100);
+    printf(" Motor GET Lift: %d\n", motor_get_lift());
+
     node::config_t node_config;
     node_t *node = node::create(&node_config, app_attribute_update_cb, NULL);
-    /*
-    endpoint::window_covering_device::config_t window_config;
-    window_config.end_product_type = WindowCovering::EndProductType::kExteriorVenetianBlind;
-    window_config.type = WindowCovering::Type::kTiltBlindLiftAndTilt;
-    window_config.mode = WindowCovering::Mode::kMotorDirectionReversed;
-    window_config.config_status = WindowCovering::ConfigStatus::kLiftPositionAware;
-    window_config.operational_status = WindowCovering::OperationalStatus::kGlobal;
-    endpoint_t *endpoint = endpoint::window_covering_device::create(node, &window_config, endpoint_flags::ENDPOINT_FLAG_NONE, NULL);
-    */
+    
     endpoint::window_covering_device::config_t window_config(static_cast<uint8_t>(chip::app::Clusters::WindowCovering::EndProductType::kExteriorVenetianBlind));
+    window_config.window_covering.type = 0x02;// RollerShadeExterior
     endpoint_t *endpoint = endpoint::window_covering_device::create(node, &window_config, endpoint_flags::ENDPOINT_FLAG_NONE, NULL);
 
     cluster_t *cluster = cluster::get(endpoint, chip::app::Clusters::WindowCovering::Id);
-    cluster::window_covering::feature::lift::config_t lift;   
-    cluster::window_covering::feature::lift::add(cluster, &lift);
+    cluster::window_covering::feature::lift::config_t lift;  
     cluster::window_covering::feature::position_aware_lift::config_t position_aware_lift;
+
+    position_aware_lift.current_position_lift_percentage = lift_percentage;
+    position_aware_lift.target_position_lift_percent_100ths = lift_percentage_100ths;
+    position_aware_lift.current_position_lift_percent_100ths = lift_percentage_100ths;
+
+    cluster::window_covering::feature::lift::add(cluster, &lift);
     cluster::window_covering::feature::position_aware_lift::add(cluster, &position_aware_lift);
-    
+
     //cluster::window_covering::feature::absolute_position::config_t absolute_position;
     //cluster::window_covering::feature::absolute_position::add(cluster, &absolute_position);
+
+    // uint16_t cluster_revision;
+    // uint8_t type;
+    // uint8_t config_status;
+    // uint8_t operational_status;
+    // const uint8_t end_product_type;
+    // uint8_t mode;
 
     esp_matter::start(app_event_cb);
 

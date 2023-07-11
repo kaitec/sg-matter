@@ -88,14 +88,14 @@ typedef struct {
 void motor_handler(void);
 void motor_timer_function(void);
 void motor_HallFb_function(void);
-void reset_movement_variables(void);
-void load_position(void);
+void motor_reset_variables(void);
+void motor_load_position(void);
 void motor_init(void);
 void motor_reset(void);
 
-void set_blind(uint8_t len, uint8_t val);
-uint8_t get_roll(void);
-uint8_t get_angle(void);
+void motor_set_blind(uint8_t len, uint8_t val);
+uint8_t motor_get_lift(void);
+uint8_t motor_get_tilt(void);
 
 void enocean_roll_set(uint8_t cmd);
 void enocean_tilt_set(uint8_t cmd);

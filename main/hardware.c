@@ -44,10 +44,10 @@ void fast_timer_callback(void *priv) // 1 ms
     if(btn_count>9)
     {  
        if(btn_sum>5){
-        btn_state=1; 
-        btn_sum=0; 
-        //matter_update_current_lift(34);
-       }
+        btn_state=1;
+        btn_count=0;
+        btn_sum=0;
+       } 
        else{
         btn_state=0;
         btn_count=0;
