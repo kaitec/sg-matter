@@ -101,14 +101,12 @@ void enocean_set_tilt(uint8_t cmd)
 		//ESP_LOGI(__func__, "Tilt set Down = %d", tilt);
 	  }
 	  break;
-
-	  case CMD_STOP:
-	//   motor_driver_state(M_STOPED);
-	//   reciv.cmd     = JSON_EMPTY_CMD;
-    //   reciv.cmd_val = tilt*DIV_ANGLE;
-    //   reciv.cmd_len = TILT;
-	  break;
     }
+}
+
+uint16_t calculation_step_time(uint32_t max_step)
+{
+	return 128+(max_step/25);
 }
 
 motor_movement_t motor_driver_state(motor_movement_t state) {
@@ -205,7 +203,7 @@ void save_position_per_int(void)
 
 void motor_timer_function(void)
 {
-     if(feedback_timer_counter < PSEVDO_HALL) 
+	 if(feedback_timer_counter < step_time) 
      {
        if(motor_feedback == FB_IN_MOTION) feedback_timer_counter++;
      }
@@ -439,6 +437,7 @@ void motor_handler(void) {
 				gpio_set_level(LED_R, LED_OFF); // Led red off, init stop
 				led_green_blink();
 				State = wait_movement;
+				step_time = calculation_step_time(user_motor_var.max_r_step);
 			}
 			break;
 
@@ -631,6 +630,7 @@ void motor_load_position(void)
     //ESP_LOGI(__func__, "save height: %d", val1);
     //ESP_LOGI(__func__, "current height: %d", user_motor_var.current_step);
     //ESP_LOGI(__func__, "current angle: %d", user_motor_var.set_t_step);
+	step_time = calculation_step_time(user_motor_var.max_r_step);
 	feedback_position = user_motor_var.perc_roll;
 	feedback_angle = user_motor_var.angle_t;
   }
