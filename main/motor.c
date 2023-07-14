@@ -8,29 +8,19 @@
 #include "flash.h"
 #include "motor.h"
 
+recivcmd_t reciv;
 motor_t user_motor_var;
 user_time_t blind_time;
-recivcmd_t reciv;
-bool position_point; //set when need send notification to server? payload are current position
-bool Alarm = false; //set when corrupt motor timing recommendations
+
 bool motor_start = false;
-
-uint32_t hall_ticks = 0; // feedback from hall sensor
-uint32_t esp_logi_ticks = 0; //for debug
-
-bool control_point = 0; // TODO ?
-bool reset_point = 0;   // TODO ?
-
-bool alert_position = 0;
-//bool motor_feedback = !FB_IN_MOTION;
-
-C_STATUS_CODE_t CS_RESP = c_s_success;
-
-uint16_t feedback_timer_counter=0;
+bool alert_position=0;
 bool motor_feedback = !FB_IN_MOTION;
 
-uint8_t feedback_position;
-uint8_t feedback_angle;
+uint8_t feedback_position=0;
+uint8_t feedback_angle=0;
+uint16_t step_time = INIT_STEP_TIME;
+uint16_t feedback_timer_counter=0;
+uint32_t hall_ticks=0;
 
 void motor_set_blind(uint8_t len, uint8_t val)
 {
@@ -49,7 +39,7 @@ uint8_t motor_get_tilt(void)
 	return feedback_angle;
 }
 
-void enocean_roll_set(uint8_t cmd)
+void enocean_set_lift(uint8_t cmd)
 {
     uint8_t dir=CMD_STOP;
 	if (motor_driver_state(M_DIR_GET) == M_STOPED) dir = cmd;
@@ -60,13 +50,13 @@ void enocean_roll_set(uint8_t cmd)
       case CMD_DOWN:
 	  reciv.cmd     = S_IO_CONTROL;
       reciv.cmd_val = 0; // min roll value
-      reciv.cmd_len = ROLL;
+      reciv.cmd_len = LIFT;
 	  break;
 
 	  case CMD_UP:
 	  reciv.cmd     = S_IO_CONTROL;
       reciv.cmd_val = 100; // max roll value
-      reciv.cmd_len = ROLL;
+      reciv.cmd_len = LIFT;
 	  break;
 
 	  case CMD_STOP:
@@ -74,12 +64,12 @@ void enocean_roll_set(uint8_t cmd)
 	  reciv.cmd     = JSON_EMPTY_CMD;
       reciv.cmd_val = user_motor_var.perc_roll; // current roll value
 	  user_motor_var.set_step    = user_motor_var.current_step;
-      reciv.cmd_len = ROLL;
+      reciv.cmd_len = LIFT;
 	  break;
     }
 }
 
-void enocean_tilt_set(uint8_t cmd)
+void enocean_set_tilt(uint8_t cmd)
 {
 	uint8_t tilt = user_motor_var.angle_t; // Curent tilt (0-12)
 	//ESP_LOGI(__func__, "Curent tilt = %d", tilt);
@@ -195,14 +185,6 @@ void set_up_end_point(void){
 	user_motor_var.set_t_step = MAX_DEF_T_STEPS;
 }
 
-void check_alarm(void)
-{
-	// if ((Alarm == false) && (!blind_time.b_h.work))
-	// 	Alarm = true;
-	// else if ((Alarm == true) && (blind_time.b_h.work >= MIN_WORK_TIMEP))
-	// 	Alarm = false;
-}
-
 void sg_conf_save_position(void)
 {
 	int32_t value = 0;
@@ -218,7 +200,6 @@ void save_position_per_int(void)
 		if (!(user_motor_var.current_step % (MAX_DEF_T_STEPS + (2*MAX_DEF_T_STEPS/6)))){
 			sg_conf_save_position();
 		}
-		position_point = 1;
 	}
 }
 
@@ -256,7 +237,6 @@ void motor_timer_function(void)
 void motor_HallFb_function(void)
 {
 	blind_time.b_h.move = STEP_TIME_OUT;
-	esp_logi_ticks++;
 	if (user_motor_var.set_step != user_motor_var.current_step) {
 		hall_ticks++;
 		if (motor_driver_state(M_DIR_GET) == M_DIR_UP) {
@@ -360,7 +340,6 @@ void motor_handler(void) {
 	} State = wait_movement;
 	static uint8_t reState = stop;
 	static uint8_t move_k = 0;
-	check_alarm();
 
 	switch (State) {
 		case no_hall_sens:
@@ -552,7 +531,6 @@ void motor_handler(void) {
 			break;
 
 		case down:
-			CS_RESP = c_s_checking;
 			blind_time.b_h.tilt = 0;
 			if (blind_time.b_h.prot)
 				break;
@@ -564,7 +542,6 @@ void motor_handler(void) {
 			break;
 
 		case up:
-			CS_RESP = c_s_checking;
 			blind_time.b_h.tilt = 0;
 			if (blind_time.b_h.prot)
 				break;
@@ -611,14 +588,11 @@ void motor_handler(void) {
 			State = wait_movement;
 			{
 				sg_conf_save_position();
-				position_point = 1;
 			}
 			break;
 
 		case time_out:
 			if (motor_driver_state(M_DIR_GET) == M_STOPED){
-				CS_RESP = c_s_success;
-				control_point = 1;
 				State = stop;
 			}
 			if (!blind_time.b_h.move) {
@@ -631,8 +605,6 @@ void motor_handler(void) {
 				user_motor_var.set_step = user_motor_var.current_step;
 				user_motor_var.angle_t = user_motor_var.set_t_step;
 				State = wait_movement;
-				CS_RESP = c_s_halt;
-				control_point = 1;
 				if (!alert_position)
 					sg_allert_position(redirect);
 				else if (alert_position == true)
@@ -640,8 +612,6 @@ void motor_handler(void) {
 			}
 			if (!hall_ticks)
 				break;
-			CS_RESP = c_s_success;
-			control_point = 1;
 			State = stop;
 			break;
 	}
@@ -671,9 +641,6 @@ void motor_reset_variables(void)
 	user_motor_var.max_t_step = MAX_DEF_T_STEPS;
 	blind_time.b_h.rest = 0;
 	blind_time.b_h.work = MAX_WORK_TIMEP;
-	position_point = 0;
-	control_point = 0;
-    reset_point = 0;
 }
 
 void motor_init(void)

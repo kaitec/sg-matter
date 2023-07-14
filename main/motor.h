@@ -5,6 +5,12 @@
 #define DIV_ANGLE       15
 #define MAX_DEF_T_STEPS 12
 
+#define FB_IN_MOTION   0 // Motor feedback GPIO level motor in motion
+#define INIT_STEP_TIME 135
+
+#define MOTOR_MAX_ROLL 100 
+#define MOTOR_MAX_TILT 180 
+
 #define ON_LEVEL 1
 #define DEAD_TIME 600
 #define STEP_TIME_OUT (800+DEAD_TIME)
@@ -18,7 +24,6 @@
 #define FB_IN_MOTION   0 // Motor feedback GPIO level motor in motion
 
 #define LIFT 1
-#define ROLL 1
 #define TILT 2
 
 typedef enum {
@@ -97,15 +102,13 @@ void motor_set_blind(uint8_t len, uint8_t val);
 uint8_t motor_get_lift(void);
 uint8_t motor_get_tilt(void);
 
-void enocean_roll_set(uint8_t cmd);
-void enocean_tilt_set(uint8_t cmd);
+void enocean_set_lift(uint8_t cmd);
+void enocean_set_tilt(uint8_t cmd);
 
 extern bool motor_start;
 extern bool motor_feedback;
 extern uint32_t hall_ticks;
-extern uint32_t esp_logi_ticks;
 extern motor_t user_motor_var;
-extern C_STATUS_CODE_t CS_RESP;
 extern motor_movement_t motor_driver_state(motor_movement_t state);
 
 #endif /* MOTOR_H_ */

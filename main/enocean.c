@@ -75,19 +75,19 @@ void enocean_processing(uint8_t val)
    switch (val) 
    {
       case 0x30: 
-        enocean_roll_set(CMD_UP);
+        enocean_set_lift(CMD_UP);
         //ESP_LOGI(__func__, "Enocean comand: Roll Up");
         break;
       case 0x10: 
-        enocean_roll_set(CMD_DOWN);
+        enocean_set_lift(CMD_DOWN);
         //ESP_LOGI(__func__, "Enocean comand: Roll Down");
         break;
       case 0x70: 
-        enocean_tilt_set(CMD_UP); 
+        enocean_set_tilt(CMD_UP); 
         //ESP_LOGI(__func__, "Enocean comand: Tilt Up");       
         break;
       case 0x50: 
-        enocean_tilt_set(CMD_DOWN); 
+        enocean_set_tilt(CMD_DOWN); 
         //ESP_LOGI(__func__, "Enocean comand: Tilt Down");       
         break;
       case 0x00:       
