@@ -78,7 +78,7 @@ esp_err_t app_driver_attribute_update(uint16_t endpoint_id, uint32_t cluster_id,
             if (attribute_id == WindowCovering::Attributes::TargetPositionLiftPercent100ths::Id) 
             {
                 uint8_t percent = val->val.u16/100;
-                ESP_LOGI(__func__,"Set blynd. Lift: %d", percent);
+                ESP_LOGI(__func__,"Set blynd. Lift: %d", 100-percent);
                 motor_set_blind(LIFT, percent);
             }
             // if (attribute_id == WindowCovering::Attributes::TargetPositionTiltPercent100ths::Id) 

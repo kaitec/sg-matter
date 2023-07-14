@@ -11,7 +11,7 @@
 
 void app_main(void)
 {
-    flash_init();//nvs_flash_init();
+    flash_init();
     hardware_init();
     motor_init();
     matter_init();

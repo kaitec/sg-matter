@@ -14,7 +14,7 @@ void flash_init(void)
     err = nvs_flash_init();
     if (err != ESP_OK)
 	{ 
-		printf("Error (%s) NVS Flash Init!\n", esp_err_to_name(err));
+		printf("NVS Flash Init Error: (%s) \n", esp_err_to_name(err));
     } 
     // if (err == ESP_ERR_NVS_NO_FREE_PAGES || err == ESP_ERR_NVS_NEW_VERSION_FOUND) 
     // {
