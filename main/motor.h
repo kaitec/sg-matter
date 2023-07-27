@@ -99,6 +99,8 @@ void motor_init(void);
 void motor_reset(void);
 
 void motor_set_blind(uint8_t len, uint8_t val);
+void motor_set_lift(uint8_t val);
+void motor_set_tilt(uint8_t val);
 uint8_t motor_get_lift(void);
 uint8_t motor_get_tilt(void);
 

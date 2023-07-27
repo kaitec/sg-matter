@@ -77,14 +77,16 @@ esp_err_t app_driver_attribute_update(uint16_t endpoint_id, uint32_t cluster_id,
         { 
             if (attribute_id == WindowCovering::Attributes::TargetPositionLiftPercent100ths::Id) 
             {
-                uint8_t percent = val->val.u16/100;
-                ESP_LOGI(__func__,"Set blynd. Lift: %d", 100-percent);
-                motor_set_blind(LIFT, percent);
+                uint8_t lift_percent = val->val.u16/100;
+                ESP_LOGI(__func__,"Set blynd. Lift: %d", 100-lift_percent);
+                motor_set_lift(lift_percent);
             }
-            // if (attribute_id == WindowCovering::Attributes::TargetPositionTiltPercent100ths::Id) 
-            // {
-            //     ESP_LOGI(__func__,"Set blynd. Tilt: %d", percent);
-            // }
+            if (attribute_id == WindowCovering::Attributes::TargetPositionTiltPercent100ths::Id) 
+            {
+                uint8_t tilt_percent = val->val.u16/100;
+                ESP_LOGI(__func__,"Set blynd. Tilt: %d", tilt_percent);
+                motor_set_tilt(tilt_percent);
+            }
         } 
     }
     return err;
@@ -131,36 +133,39 @@ extern "C" void matter_update_current_lift(uint8_t value)
 extern "C" void matter_init()
 {
     nullable<uint8_t> lift_percentage = nullable<uint8_t>(motor_get_lift());
+    nullable<uint8_t> tilt_percentage = nullable<uint8_t>(motor_get_tilt());
     nullable<uint16_t> lift_percentage_100ths = nullable<uint16_t>(motor_get_lift()*100);
-    printf(" Motor GET Lift: %d\n", motor_get_lift());
+    nullable<uint16_t> tilt_percentage_100ths = nullable<uint16_t>(motor_get_tilt()*100);
+    printf(" Motor GET Percentage - Lift: %d Tilt: %d \n", motor_get_lift(), motor_get_tilt());
 
     node::config_t node_config;
     node_t *node = node::create(&node_config, app_attribute_update_cb, NULL);
     
     endpoint::window_covering_device::config_t window_config(static_cast<uint8_t>(chip::app::Clusters::WindowCovering::EndProductType::kExteriorVenetianBlind));
-    window_config.window_covering.type = 0x02;// RollerShadeExterior
+    window_config.window_covering.type = 0x08; //Tilt Blind - Lift & Tilt
     endpoint_t *endpoint = endpoint::window_covering_device::create(node, &window_config, endpoint_flags::ENDPOINT_FLAG_NONE, NULL);
 
     cluster_t *cluster = cluster::get(endpoint, chip::app::Clusters::WindowCovering::Id);
+
     cluster::window_covering::feature::lift::config_t lift;  
     cluster::window_covering::feature::position_aware_lift::config_t position_aware_lift;
-
     position_aware_lift.current_position_lift_percentage = lift_percentage;
     position_aware_lift.target_position_lift_percent_100ths = lift_percentage_100ths;
     position_aware_lift.current_position_lift_percent_100ths = lift_percentage_100ths;
 
+    cluster::window_covering::feature::tilt::config_t tilt;  
+    cluster::window_covering::feature::position_aware_tilt::config_t position_aware_tilt;
+    position_aware_tilt.current_position_tilt_percentage = tilt_percentage;
+    position_aware_tilt.target_position_tilt_percent_100ths = tilt_percentage_100ths;
+    position_aware_tilt.current_position_tilt_percent_100ths = tilt_percentage_100ths;
+
     cluster::window_covering::feature::lift::add(cluster, &lift);
+    cluster::window_covering::feature::tilt::add(cluster, &tilt);
     cluster::window_covering::feature::position_aware_lift::add(cluster, &position_aware_lift);
+    cluster::window_covering::feature::position_aware_tilt::add(cluster, &position_aware_tilt);
 
     //cluster::window_covering::feature::absolute_position::config_t absolute_position;
     //cluster::window_covering::feature::absolute_position::add(cluster, &absolute_position);
-
-    // uint16_t cluster_revision;
-    // uint8_t type;
-    // uint8_t config_status;
-    // uint8_t operational_status;
-    // const uint8_t end_product_type;
-    // uint8_t mode;
 
     esp_matter::start(app_event_cb);
 

@@ -29,6 +29,20 @@ void motor_set_blind(uint8_t len, uint8_t val)
 		reciv.cmd_val= 100-val;
 }
 
+void motor_set_lift(uint8_t val)
+{
+		reciv.cmd=S_IO_CONTROL;
+		reciv.cmd_len=LIFT;
+		reciv.cmd_val= 100-val;
+}
+
+void motor_set_tilt(uint8_t val)
+{
+		reciv.cmd=S_IO_CONTROL;
+		reciv.cmd_len=TILT;
+		reciv.cmd_val=val*1.8;
+}
+
 uint8_t motor_get_lift(void)
 {
 	return 100-feedback_position;
@@ -36,7 +50,7 @@ uint8_t motor_get_lift(void)
 
 uint8_t motor_get_tilt(void)
 {
-	return feedback_angle;
+	return feedback_angle/1.8;
 }
 
 void enocean_set_lift(uint8_t cmd)
