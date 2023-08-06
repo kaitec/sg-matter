@@ -7,6 +7,7 @@
 #include "enocean.h"
 #include "flash.h"
 #include "motor.h"
+#include "matter.h"
 
 recivcmd_t reciv;
 motor_t user_motor_var;
@@ -50,7 +51,7 @@ uint8_t motor_get_lift(void)
 
 uint8_t motor_get_tilt(void)
 {
-	return feedback_angle/1.8;
+	return (feedback_angle*100)/12;
 }
 
 void enocean_set_lift(uint8_t cmd)
@@ -169,7 +170,8 @@ motor_movement_t motor_driver_state(motor_movement_t state) {
 		feedback_angle = user_motor_var.angle_t;
 
 		/*************************** UPDATE POSITION ************************/
-		//matter_update_current_lift(motor_get_lift());
+		matter_update_current_lift(motor_get_lift());
+		matter_update_current_tilt(motor_get_tilt());
 	}
 	return direction;
 }

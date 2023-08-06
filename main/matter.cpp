@@ -122,12 +122,20 @@ extern "C" void matter_update_current_lift(uint8_t value)
 {
     uint16_t endpoint_id = window_endpoint_id;
     uint32_t cluster_id = WindowCovering::Id;
-    //uint32_t attribute_id = WindowCovering::Attributes::CurrentPositionLiftPercentage::Id;
+    uint32_t attribute_id = WindowCovering::Attributes::CurrentPositionLiftPercent100ths::Id;
 
-    esp_matter_attr_val_t percent_u8  = esp_matter_nullable_uint8(value);
     esp_matter_attr_val_t percent_u16 = esp_matter_nullable_uint16(value*100);
-    attribute::update(endpoint_id, cluster_id, WindowCovering::Attributes::CurrentPositionLiftPercentage::Id, &percent_u8);
-    attribute::update(endpoint_id, cluster_id, WindowCovering::Attributes::CurrentPositionLiftPercent100ths::Id, &percent_u16);
+    attribute::update(endpoint_id, cluster_id, attribute_id, &percent_u16);
+}
+
+extern "C" void matter_update_current_tilt(uint8_t value)
+{
+    uint16_t endpoint_id = window_endpoint_id;
+    uint32_t cluster_id = WindowCovering::Id;
+    uint32_t attribute_id = WindowCovering::Attributes::CurrentPositionTiltPercent100ths::Id;
+
+    esp_matter_attr_val_t percent_u16 = esp_matter_nullable_uint16(value*100);
+    attribute::update(endpoint_id, cluster_id, attribute_id, &percent_u16);
 }
 
 extern "C" void matter_init()
